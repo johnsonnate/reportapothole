@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Report Potholes</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAevpIyEdBd3ZIErmHFjziKMXLe8GVZGPE"></script>
+  <script>
+    var marker;
+    var map;
+    function initMap() {
+      var merida = { lat: 20.967370, lng: -89.592580 };
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 14,
+        center: merida
+      });
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          var pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          map.setCenter(pos);
+          marker = new google.maps.Marker({
+            position: pos,
+            map: map,
+            title: "Your location"
+          });
+        });
+      }
+      google.maps.event.addListener(map, "click", function(event) {
+        if (!marker) {
+          marker = new google.maps.Marker({
+            position: event.latLng,
+            map: map,
+            draggable: true
+          });
+          google.maps.event.addListener(marker, "dragend", function(event) {
+            document.getElementById("lat").value = event.latLng.lat();
+            document.getElementById("lng").value = event.latLng.lng();
+          });
+        } else {
+          marker.setPosition(event.latLng);
+        }
+        document.getElementById("lat").value = event.latLng.lat();
+        document.getElementById("lng").value = event.latLng.lng();
+      });
+    }
+  </script>
+</head>
+<body onload="initMap()">
+  <div id="map" style="width: 100%; height: 500px;"></div>
+  <br>
+  <form>
+    Latitude: <input type="text" id="lat" name="lat"><br>
+    Longitude: <input type="text" id="lng" name="lng"><br>
+    <input type="file" accept="image/*" capture="camera">
+    <br><br>
+    <input type="submit" value="Report Pothole">
+  </form>
+  
+  <script>
+    // Add form submit event listener
+    document.querySelector("form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      var lat = document.getElementById("lat").value;
+      var lng = document.getElementById("lng").value;
+      
+      // Make API call to Google Sheets API
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://sheets.googleapis.com/v4/spreadsheets/1p9yMs2zs-8ZsvH5WGNILjFnVS9ttNG6rkqB95FR1P1k/values/sheet1!A1:append?valueInputOption=RAW");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("Authorization", "Bearer " + ACCESS_TOKEN);
+      xhr.send(JSON.stringify({
+        values: [
+          [lat, lng]
+        ]
+      }));
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
